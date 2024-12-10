@@ -13,7 +13,7 @@ from time import sleep
 ua = UserAgent()
 
 # 目标 URL
-url = "https://www.binance.com/zh-CN/markets/overview"
+url = "https://coinmarketcap.com/"
 
 # 设置请求头，使用随机 User-Agent 来模拟不同浏览器访问
 headers = {
@@ -60,13 +60,17 @@ def parse_data(html):
     markets = []
 
     # 假设数据在某个特定的 div 中，你可以根据页面的实际 HTML 标签来修改
-    market_table = soup.find("div", class_="css-vurnku")  # 示例 class，具体需要根据页面内容调整
+    # market_table = soup.find("div", class_="sc-936354b2-2 bOgFCq")  # 示例 class，具体需要根据页面内容调整
+    market_table = soup.find_all('div', class_='sc-936354b2-2 bOgFCq')
+
     # print(market_table)
     # market_table = soup.find_all(class_=re.compile(r"\bbg-bg1\b"))  # 示例 class，具体需要根据页面内容调整 soup.find_all(class_=re.compile(r"\bbg-bg1\b"))
     # market_table = soup.select(".bg-bg1")  # 示例 class，具体需要根据页面内容调整
      # 找到所有 class 為 "flex-1" 的 div 元素
-    divs = market_table.find_all('div', class_='flex-1')
-
+    # divs = market_table.find_all('div', class_='sc-b3fc6b7-0 dzgUIj')
+    for element in market_table:
+        divs = element.find_all('div', class_='sc-b3fc6b7-0 dzgUIj')
+    # return divs
     # 將所有 div 元素的文本內容連接成一個字串
     all_text = ""
     for div in divs:
@@ -95,5 +99,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
