@@ -4,17 +4,33 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
+import pandas as pd
+import re
+
+
+def string_to_list(data_string):
+    # 使用正则表达式提取数据
+    pattern = r"排名:(\d+)名称:([\w]+)成交额:\$([\d,]+)USDT"
+    matches = re.findall(pattern, data_string)
+
+    # 转换为表格
+    df = pd.DataFrame(matches, columns=["排名", "名称", "成交额"])
+
+
+    # 显示结果
+    print(df)
+    return df
 
 
 
-data_list = []
-data_index = 0;
+
+
 
 def parse_data(html):
     # 启动浏览器
     driver = webdriver.Chrome()
     driver.get(html)
-
+    data_string = ''
     # 找到滚动条并不断向下滚动
     element = driver.find_element(By.TAG_NAME, "body")
     for _ in range(30):
@@ -39,7 +55,6 @@ def parse_data(html):
         # print(f"type:{type(cells)}--{cells}")
         # 打印每个单元格的文本
         for cell in cells:
-            data_string = ''
             cell_text = cell.text.strip()  # 获取文本并去除前后空格
             cell_class = cell.get_attribute("class")  # 获取class属性
             
@@ -48,30 +63,36 @@ def parse_data(html):
             if strings[index] == "排名" :
                 # print(f"{strings[index]}: {cell_text}")
                 data_string += "排名:" + cell_text
+                # print(data_string)
             if strings[index] == "名称" :
                 lines = cell_text.splitlines()
                 value = lines[1]
                 data_string += "名称:" + value
+                # print(data_string)
                 # print(f"{strings[index]}: {value}")
             if strings[index] == "成交额" :
                 lines = cell_text.splitlines()
                 value = lines[0]+"USDT"
+                # value = value.replace("$", "")
                 data_string += "成交额:" + value
+                # print(data_string)
                 # print(f"{strings[index]}: {value}")
             index += 1
-            data_string = data_string.replace("\n", " ").strip()
-            print(data_string)
-            data_list.append(data_string)     
+            # print(data_string)
+            # data_list.append(data_string)     
         # print("-" * 20)  # 分隔线，区分不同的行
         # current_time = datetime.now()
         # print(f"当前时间{current_time}")
 
     # 关闭浏览器
     driver.quit()
+    return data_string
 
-parse_data("https://coinmarketcap.com/")
+ret_string = parse_data("https://coinmarketcap.com/")
 # parse_data("https://coinmarketcap.com/?page=2")
 # current_time = datetime.now()
 # print(f"当前时间{current_time}")
-print(data_list)
+print(ret_string)
+string_to_list(ret_string)
+# print(data_list)
 
