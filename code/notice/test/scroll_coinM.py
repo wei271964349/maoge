@@ -6,6 +6,18 @@ from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 import pandas as pd
 import re
+import os
+
+
+def write_dataframe_to_csv(df, filename='data_save.csv', mode='a', header=False):
+    """将 DataFrame 写入 CSV 文件，使用相对路径，支持追加写入，包含写入时间。"""
+    filepath = os.path.join(os.path.dirname(__file__), filename)
+    # 获取当前时间，并格式化为 ISO 8601 字符串
+    current_time = datetime.now().isoformat() # 東八區時間，不含 Z 字尾
+    df['write_time'] = current_time
+    df.to_csv(filepath, mode=mode, header=header, index=False, encoding='utf-8')
+
+
 
 
 def string_to_list(data_string):
@@ -18,7 +30,9 @@ def string_to_list(data_string):
 
 
     # 显示结果
+    print(f"df得数据类型是{type(df)}")
     print(df)
+    write_dataframe_to_csv(df, mode='a', header=True)
     return df
 
 
