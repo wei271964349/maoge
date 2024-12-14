@@ -22,11 +22,32 @@ def write_dataframe_to_csv(df, filename='data_save.csv', mode='a', header=False)
 
 def string_to_list(data_string):
     # 使用正则表达式提取数据
-    pattern = r"排名:(\d+)名称:([\w]+)成交额:\$([\d,]+)USDT"
+    pattern = r"市值排名:(\d+)名称:([\w]+)成交额:\$([\d,]+)USDT"
     matches = re.findall(pattern, data_string)
 
     # 转换为表格
-    df = pd.DataFrame(matches, columns=["排名", "名称", "成交额"])
+    df = pd.DataFrame(matches, columns=["市值排名", "名称", "成交额"])
+   
+    # # 数据类型转换和排序
+    # df["成交额"] = df["成交额"].str.replace(",", "", regex=False).astype(float) #移除逗号并转为浮点数
+    # df = df.sort_values(by="成交额", ascending=False) # 按成交额降序排序
+    # df["成交额"] = df["成交额"].apply(lambda x: "${:,.2f} USDT".format(x))  # 将成交额格式化回带逗号和'$'的字符串
+    # 數據類型轉換和排序、單位轉換
+
+    # df["成交额"] = df["成交额"].str.replace(",", "", regex=False).astype(float)
+    # df["成交额"] = df["成交额"] / 1000000  # 除以一百萬，轉換為百萬單位
+    # df = df.sort_values(by="成交额", ascending=False)
+    # df["成交额"] = df["成交额"].apply(lambda x: "${:,.2f} M-USDT".format(x)) # 格式化為百萬單位 M-USDT
+    
+    df["成交额"] = df["成交额"].str.replace(",", "", regex=False).astype(float)
+    df["成交额"] = df["成交额"] / 1000000  # 除以一百萬，轉換為百萬單位
+    df = df.sort_values(by="成交额", ascending=False).reset_index(drop=True) # 重新設置索引並刪除舊索引
+
+    # 新增「成交额排名」欄位
+    df.insert(0, "成交额排名", range(1, len(df) + 1)) #在最前面插入新的一列,並給予排名
+
+    df["成交额"] = df["成交额"].apply(lambda x: "${:,.2f} M-USDT".format(x)) # 格式化為百萬單位 M-USDT
+
 
 
     # 显示结果
@@ -59,7 +80,7 @@ def parse_data(html):
     rows = []
     rows.extend(rows1)
     rows.extend(rows2)
-    strings = ["","排名","名称","价格","1小时变化","1天变化","一周变化","总市值","成交额","成交数",""]
+    strings = ["","市值排名","名称","价格","1小时变化","1天变化","一周变化","总市值","成交额","成交数",""]
 
     # 遍历每一行，打印每个单元格的内容
     for row in rows:
@@ -74,9 +95,9 @@ def parse_data(html):
             
             # 打印单元格的文本
             # print(f"{strings[index]}: {cell_text}")
-            if strings[index] == "排名" :
+            if strings[index] == "市值排名" :
                 # print(f"{strings[index]}: {cell_text}")
-                data_string += "排名:" + cell_text
+                data_string += "市值排名:" + cell_text
                 # print(data_string)
             if strings[index] == "名称" :
                 lines = cell_text.splitlines()
