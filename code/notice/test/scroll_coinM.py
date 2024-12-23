@@ -5,10 +5,16 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 import pandas as pd
+import time
 import re
 import os
+import matplotlib.pyplot as plt 
 
 
+
+
+
+# 把数据写入csv文件
 def write_dataframe_to_csv(df, filename='data_save.csv', mode='a', header=False):
     """将 DataFrame 写入 CSV 文件，使用相对路径，支持追加写入，包含写入时间。"""
     filepath = os.path.join(os.path.dirname(__file__), filename)
@@ -19,8 +25,8 @@ def write_dataframe_to_csv(df, filename='data_save.csv', mode='a', header=False)
 
 
 
-
-def string_to_list(data_string):
+# 文件列表变成用于CSV文件记录的数据 并且写入
+def string_write_to_file(data_string):
     # 使用正则表达式提取数据
     pattern = r"市值排名:(\d+)名称:([\w]+)成交额:\$([\d,]+)USDT"
     matches = re.findall(pattern, data_string)
@@ -28,16 +34,6 @@ def string_to_list(data_string):
     # 转换为表格
     df = pd.DataFrame(matches, columns=["市值排名", "名称", "成交额"])
    
-    # # 数据类型转换和排序
-    # df["成交额"] = df["成交额"].str.replace(",", "", regex=False).astype(float) #移除逗号并转为浮点数
-    # df = df.sort_values(by="成交额", ascending=False) # 按成交额降序排序
-    # df["成交额"] = df["成交额"].apply(lambda x: "${:,.2f} USDT".format(x))  # 将成交额格式化回带逗号和'$'的字符串
-    # 數據類型轉換和排序、單位轉換
-
-    # df["成交额"] = df["成交额"].str.replace(",", "", regex=False).astype(float)
-    # df["成交额"] = df["成交额"] / 1000000  # 除以一百萬，轉換為百萬單位
-    # df = df.sort_values(by="成交额", ascending=False)
-    # df["成交额"] = df["成交额"].apply(lambda x: "${:,.2f} M-USDT".format(x)) # 格式化為百萬單位 M-USDT
     
     df["成交额"] = df["成交额"].str.replace(",", "", regex=False).astype(float)
     df["成交额"] = df["成交额"] / 1000000  # 除以一百萬，轉換為百萬單位
@@ -60,7 +56,7 @@ def string_to_list(data_string):
 
 
 
-
+# 获取解析网页数据
 def parse_data(html):
     # 启动浏览器
     driver = webdriver.Chrome()
@@ -123,11 +119,12 @@ def parse_data(html):
     driver.quit()
     return data_string
 
-ret_string = parse_data("https://coinmarketcap.com/")
-# parse_data("https://coinmarketcap.com/?page=2")
-# current_time = datetime.now()
-# print(f"当前时间{current_time}")
-print(ret_string)
-string_to_list(ret_string)
-# print(data_list)
+while True:
+    print("START")
+    ret_string = parse_data("https://coinmarketcap.com/")
+    # parse_data("https://coinmarketcap.com/?page=2")
+    print(ret_string)
+    string_write_to_file(ret_string)
+    time.sleep(3000)
+
 
