@@ -27,6 +27,10 @@ def write_dataframe_to_csv(df, filename='data_save.csv', mode='a', header=False)
 
 # 文件列表变成用于CSV文件记录的数据 并且写入
 def string_write_to_file(data_string):
+    print(data_string)
+    if data_string == "" :
+        print("获取网页数据失败")
+        return -1
     # 使用正则表达式提取数据
     pattern = r"市值排名:(\d+)名称:([\w]+)成交额:\$([\d,]+)USDT"
     matches = re.findall(pattern, data_string)
@@ -49,6 +53,7 @@ def string_write_to_file(data_string):
     # 显示结果
     print(f"df得数据类型是{type(df)}")
     print(df)
+
     write_dataframe_to_csv(df, mode='a', header=True)
     return df
 
@@ -60,17 +65,22 @@ def string_write_to_file(data_string):
 def parse_data(html):
     # 启动浏览器
     driver = webdriver.Chrome()
-    driver.get(html)
+    try :
+        driver.get(html)    //打开网页
+    except Exception as e:
+        print("网页打不开",e)
     data_string = ''
     # 找到滚动条并不断向下滚动
     element = driver.find_element(By.TAG_NAME, "body")
     for _ in range(30):
         element.send_keys(Keys.PAGE_DOWN)
-
     # # 等待页面加载完成
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.sc-936354b2-2.bOgFCq")))
+    try :
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.sc-936354b2-2.bOgFCq")))
+    except Exception as e:
+        print("找DIV卡住")
 
-
+    print('找class在卡住')
     rows1 = driver.find_elements(By.CSS_SELECTOR, "tr[style='cursor:pointer']")
     rows2 = driver.find_elements(By.CSS_SELECTOR, "tr[style='cursor: pointer;']")
     rows = []
@@ -121,7 +131,8 @@ def parse_data(html):
 
 while True:
     print("START")
-    ret_string = parse_data("https://coinmarketcap.com/")
+    # ret_string = parse_data("https://coinmarketcap.com/")
+    ret_string = parse_data("https://coinmarketcap.com1/")
     # parse_data("https://coinmarketcap.com/?page=2")
     print(ret_string)
     string_write_to_file(ret_string)
